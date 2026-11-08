@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: agenttools-api
+    runtime: python
+    plan: free
+    buildCommand: |
+      apt-get update && apt-get install -y libxml2-dev libxslt-dev gcc
+      pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: DEFAULT_API_KEY
+        generateValue: true
+      - key: MASTER_API_KEY
+        generateValue: true
+      - key: DB_PATH
+        value: /var/data/agent_api.db
+    disk:
+      name: agenttools-data
+      mountPath: /var/data
+      sizeGB: 1

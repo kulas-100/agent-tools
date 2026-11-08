@@ -1,0 +1,109 @@
+# Smithery.ai MCP Server Manifest
+# https://smithery.ai — The MCP Tool Marketplace
+
+name: agenttools
+displayName: "AgentTools — Essential Tools for AI Agents"
+version: "1.0.0"
+description: >
+  7 powerful, ready-to-use tools for agentic AI systems:
+  web reader, DuckDuckGo search, real-time weather, safe calculator,
+  news headlines, extractive summarizer, and IP geolocation.
+  Zero-cost external data sources. No extra API keys required.
+
+author: "Your Name"
+homepage: "https://github.com/yourusername/agent-apis"
+license: MIT
+
+# How to start this MCP server
+startCommand:
+  type: stdio
+  command: python
+  args: ["mcp_server.py"]
+  env:
+    PYTHONPATH: "."
+
+# Tool manifest — describes each tool for discovery
+tools:
+  - name: web_reader
+    description: "Fetch and extract clean readable text from any public webpage URL"
+    inputSchema:
+      type: object
+      properties:
+        url:
+          type: string
+          description: "The full URL to fetch"
+        max_chars:
+          type: integer
+          description: "Maximum characters to return (default 5000)"
+      required: [url]
+
+  - name: web_search
+    description: "Search the web using DuckDuckGo and return structured results"
+    inputSchema:
+      type: object
+      properties:
+        query:
+          type: string
+          description: "Search query string"
+        max_results:
+          type: integer
+          description: "Number of results (1-20, default 5)"
+      required: [query]
+
+  - name: get_weather
+    description: "Get current weather and multi-day forecast for any location worldwide"
+    inputSchema:
+      type: object
+      properties:
+        location:
+          type: string
+          description: "City or place name (e.g. 'London', 'New York')"
+        forecast_days:
+          type: integer
+          description: "Forecast days (1-7, default 3)"
+      required: [location]
+
+  - name: calculator
+    description: "Safely evaluate mathematical expressions (arithmetic, trig, log, sqrt)"
+    inputSchema:
+      type: object
+      properties:
+        expression:
+          type: string
+          description: "Math expression (e.g. 'sqrt(144)', 'sin(pi/2)', '2**10')"
+      required: [expression]
+
+  - name: get_news
+    description: "Fetch latest news headlines and summaries for any topic"
+    inputSchema:
+      type: object
+      properties:
+        topic:
+          type: string
+          description: "News topic or keyword"
+        max_articles:
+          type: integer
+          description: "Number of articles (1-20, default 5)"
+      required: [topic]
+
+  - name: summarize
+    description: "Summarize long text into key sentences using extractive summarization"
+    inputSchema:
+      type: object
+      properties:
+        text:
+          type: string
+          description: "Text to summarize (max 50,000 chars)"
+        num_sentences:
+          type: integer
+          description: "Number of output sentences (1-10, default 3)"
+      required: [text]
+
+  - name: get_ip_info
+    description: "Get geolocation and ISP metadata for an IP address"
+    inputSchema:
+      type: object
+      properties:
+        ip:
+          type: string
+          description: "IP address (leave blank for your own IP)"
