@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+agent_api.db
+*.log
+.DS_Store

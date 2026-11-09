@@ -9,3 +9,5 @@ pydantic>=2.9.0
 aiosqlite>=0.20.0
 duckduckgo-search>=6.0.0
 click>=8.1.7
+pypdf>=5.0.0
+markdownify>=1.2.0

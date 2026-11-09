@@ -26,13 +26,27 @@ import traceback
 
 TOOLS = [
     {
+        "name": "pdf_extract",
+        "description": "Extract structured text per page, metadata, and estimated token counts from a PDF document (via URL or Base64).",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "url": {"type": "string", "description": "Direct URL of the PDF"},
+                "file_base64": {"type": "string", "description": "Base64-encoded PDF binary"},
+                "max_pages": {"type": "integer", "description": "Maximum pages to extract (default 15)", "default": 15},
+                "start_page": {"type": "integer", "description": "Starting page number (default 1)", "default": 1},
+            },
+        },
+    },
+    {
         "name": "web_reader",
-        "description": "Fetch and extract clean readable text from any public webpage URL.",
+        "description": "Fetch any public webpage URL and extract clean, structured Markdown optimized for LLM token efficiency.",
         "inputSchema": {
             "type": "object",
             "properties": {
                 "url": {"type": "string", "description": "The full URL to fetch"},
-                "max_chars": {"type": "integer", "description": "Max characters to return (default 5000)", "default": 5000},
+                "max_length": {"type": "integer", "description": "Max markdown length (default 15000)", "default": 15000},
+                "include_links": {"type": "boolean", "description": "Whether to return page links catalog", "default": False},
             },
             "required": ["url"],
         },
@@ -114,17 +128,36 @@ TOOLS = [
 async def execute_tool(name: str, arguments: dict) -> str:
     """Route tool call to the correct handler."""
     from app.models import (
-        WebReaderRequest, WebSearchRequest, WeatherRequest,
+        WebReaderRequest, PDFExtractRequest, WebSearchRequest, WeatherRequest,
         CalculatorRequest, NewsRequest, SummarizeRequest,
     )
 
-    if name == "web_reader":
+    if name == "pdf_extract":
+        from app.tools.pdf_extractor import extract_pdf
+        result = await extract_pdf(PDFExtractRequest(
+            url=arguments.get("url"),
+            file_base64=arguments.get("file_base64"),
+            max_pages=arguments.get("max_pages", 15),
+            start_page=arguments.get("start_page", 1),
+        ))
+        lines = [
+            f"Title: {result.title or 'N/A'}",
+            f"Author: {result.author or 'N/A'}",
+            f"Pages: {result.pages_extracted}/{result.total_pages}",
+            f"Estimated Tokens: {result.estimated_tokens}",
+            "",
+            result.full_text,
+        ]
+        return "\n".join(lines)
+
+    elif name == "web_reader":
         from app.tools.web_reader import read_webpage
         result = await read_webpage(WebReaderRequest(
             url=arguments["url"],
-            max_chars=arguments.get("max_chars", 5000),
+            max_length=arguments.get("max_length", 15000),
+            include_links=arguments.get("include_links", False),
         ))
-        return f"Title: {result.title}\nURL: {result.url}\n\n{result.text}"
+        return f"# {result.title}\nSource: {result.url}\nEstimated Tokens: {result.estimated_tokens}\n\n{result.markdown}"
 
     elif name == "web_search":
         from app.tools.web_search import search_web
