@@ -6,6 +6,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi)](https://fastapi.tiangolo.com)
 [![Python](https://img.shields.io/badge/Python-3.8+-3776AB?logo=python)](https://python.org)
 [![MCP](https://img.shields.io/badge/MCP-1.1-blueviolet)](https://modelcontextprotocol.io)
+[![Glama MCP](https://glama.ai/mcp/servers/kulas-100/agent-tools/badge)](https://glama.ai/mcp/servers/kulas-100/agent-tools)
 [![RapidAPI](https://img.shields.io/badge/RapidAPI-Verified-0055FF?logo=rapidapi)](https://rapidapi.com/kulas100/api/agenttools)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
