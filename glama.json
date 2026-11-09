@@ -1,5 +1,8 @@
 {
   "$schema": "https://glama.ai/mcp/schemas/server.json",
+  "maintainers": [
+    "kulas-100"
+  ],
   "name": "AgentTools",
   "description": "Production-grade MCP server providing Financial Invoice & Receipt Extraction with math verification, PDF Document Intelligence with token budgets, and token-efficient Markdown web scraping for Claude Desktop, Cursor, and Windsurf.",
   "homepage": "https://github.com/kulas-100/agent-tools",
