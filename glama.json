@@ -1,0 +1,51 @@
+{
+  "$schema": "https://glama.ai/mcp/schemas/server.json",
+  "name": "AgentTools",
+  "description": "Production-grade MCP server providing Financial Invoice & Receipt Extraction with math verification, PDF Document Intelligence with token budgets, and token-efficient Markdown web scraping for Claude Desktop, Cursor, and Windsurf.",
+  "homepage": "https://github.com/kulas-100/agent-tools",
+  "license": "MIT",
+  "categories": [
+    "finance",
+    "documents",
+    "developer-tools",
+    "web-scraping"
+  ],
+  "tools": [
+    {
+      "name": "invoice_extract",
+      "description": "Extract structured financial data from invoices and receipts (vendor, invoice #, line items, totals, dates, tax with math verification)"
+    },
+    {
+      "name": "pdf_extract",
+      "description": "Extract structured text per page, metadata, and estimated token counts from a PDF document"
+    },
+    {
+      "name": "web_reader",
+      "description": "Fetch any public webpage URL and extract clean, structured Markdown optimized for LLM token efficiency"
+    },
+    {
+      "name": "web_search",
+      "description": "Search the web using DuckDuckGo and return structured results"
+    },
+    {
+      "name": "get_weather",
+      "description": "Get current weather and multi-day forecast for any location worldwide"
+    },
+    {
+      "name": "calculator",
+      "description": "Safely evaluate math expressions (arithmetic, trig, log, sqrt, factorial)"
+    },
+    {
+      "name": "get_news",
+      "description": "Fetch latest news headlines and summaries for any topic"
+    },
+    {
+      "name": "summarize",
+      "description": "Summarize long text into key sentences using extractive summarization"
+    },
+    {
+      "name": "get_ip_info",
+      "description": "Get geolocation and ISP metadata for an IP address"
+    }
+  ]
+}
