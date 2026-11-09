@@ -209,6 +209,43 @@ TOOLS = [
 ]
 
 
+# ─── Prompts & Resources definitions ──────────────────────────────────────────
+
+PROMPTS = [
+    {
+        "name": "audit_invoice",
+        "description": "Examine an invoice or financial receipt for line-item accuracy, tax calculation, and payment terms.",
+        "arguments": [
+            {
+                "name": "invoice_input",
+                "description": "Invoice text, URL, or extracted data to audit",
+                "required": True,
+            }
+        ],
+    },
+    {
+        "name": "summarize_document",
+        "description": "Condense a document or web article into executive key takeaways and actionable decisions.",
+        "arguments": [
+            {
+                "name": "document_content",
+                "description": "Raw text or Markdown content to analyze",
+                "required": True,
+            }
+        ],
+    },
+]
+
+RESOURCES = [
+    {
+        "uri": "agenttools://docs/overview",
+        "name": "AgentTools Overview & System Guidelines",
+        "mimeType": "text/markdown",
+        "description": "Complete reference manual and best practices for AgentTools capabilities.",
+    }
+]
+
+
 # ─── Tool execution ───────────────────────────────────────────────────────────
 
 async def execute_tool(name: str, arguments: dict) -> str:
@@ -367,11 +404,23 @@ async def handle_request(request: dict):
                 "id": req_id,
                 "result": {
                     "protocolVersion": "2024-11-05",
-                    "capabilities": {"tools": {}},
+                    "capabilities": {
+                        "tools": {},
+                        "prompts": {},
+                        "resources": {},
+                    },
                     "serverInfo": {
                         "name": "AgentTools",
-                        "version": "1.0.0",
+                        "version": "1.1.0",
                     },
+                    "instructions": (
+                        "AgentTools provides production-grade tools, interactive prompt workflows, and system guides for AI agents. "
+                        "Guidelines for model execution:\n"
+                        "- Invoices & Receipts: Always call 'invoice_extract' with invoice image/PDF URLs, base64 strings, or raw OCR text. It extracts structured fields and mathematically verifies subtotal + tax == total.\n"
+                        "- PDF Documents: Use 'pdf_extract' for multi-page documents to inspect outlines, pages, and token counts.\n"
+                        "- Web Content: Use 'web_reader' to retrieve distraction-free Markdown from URLs, or 'web_search' for real-time DuckDuckGo queries.\n"
+                        "- Calculations: Always route math formulas and scientific calculations to 'calculator' to guarantee arithmetic precision."
+                    ),
                 },
             })
 
@@ -400,6 +449,96 @@ async def handle_request(request: dict):
                     "isError": False,
                 },
             })
+
+        elif method == "prompts/list":
+            send_response({
+                "jsonrpc": "2.0",
+                "id": req_id,
+                "result": {"prompts": PROMPTS},
+            })
+
+        elif method == "prompts/get":
+            params = request.get("params", {})
+            prompt_name = params.get("name")
+            args = params.get("arguments", {})
+            if prompt_name == "audit_invoice":
+                inv_text = args.get("invoice_input", "")
+                send_response({
+                    "jsonrpc": "2.0",
+                    "id": req_id,
+                    "result": {
+                        "description": "Audit an invoice for mathematical correctness and compliance.",
+                        "messages": [
+                            {
+                                "role": "user",
+                                "content": {
+                                    "type": "text",
+                                    "text": (
+                                        f"Please perform a detailed financial audit of the following invoice:\n\n{inv_text}\n\n"
+                                        "1. Verify vendor name, invoice date, due date, and invoice number.\n"
+                                        "2. Check each line item (quantity * unit price == total).\n"
+                                        "3. Verify whether subtotal + tax equals the total amount due.\n"
+                                        "4. Highlight any discrepancies or missing payment terms."
+                                    ),
+                                },
+                            }
+                        ],
+                    },
+                })
+            elif prompt_name == "summarize_document":
+                doc = args.get("document_content", "")
+                send_response({
+                    "jsonrpc": "2.0",
+                    "id": req_id,
+                    "result": {
+                        "description": "Executive summary of a document.",
+                        "messages": [
+                            {
+                                "role": "user",
+                                "content": {
+                                    "type": "text",
+                                    "text": f"Please provide an executive summary and key findings for this document:\n\n{doc}",
+                                },
+                            }
+                        ],
+                    },
+                })
+            else:
+                send_error(req_id, -32602, f"Unknown prompt: {prompt_name}")
+
+        elif method == "resources/list":
+            send_response({
+                "jsonrpc": "2.0",
+                "id": req_id,
+                "result": {"resources": RESOURCES},
+            })
+
+        elif method == "resources/read":
+            params = request.get("params", {})
+            uri = params.get("uri")
+            if uri == "agenttools://docs/overview":
+                send_response({
+                    "jsonrpc": "2.0",
+                    "id": req_id,
+                    "result": {
+                        "contents": [
+                            {
+                                "uri": uri,
+                                "mimeType": "text/markdown",
+                                "text": (
+                                    "# AgentTools Documentation\n\n"
+                                    "Production-grade tool suite for Agentic AIs.\n"
+                                    "- Invoice & Receipt Extraction: deterministic regex and math validation.\n"
+                                    "- PDF Document Intelligence: token-aware page-by-page parser.\n"
+                                    "- Web Reader: converts HTML into clean Markdown.\n"
+                                    "- Calculator: safe AST-based numeric evaluations.\n"
+                                )
+                            }
+                        ]
+                    }
+                })
+            else:
+                send_error(req_id, -32602, f"Resource not found: {uri}")
 
         elif method == "ping":
             send_response({"jsonrpc": "2.0", "id": req_id, "result": {}})
