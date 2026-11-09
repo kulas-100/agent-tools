@@ -1,17 +1,17 @@
 # Smithery.ai MCP Server Manifest
-# https://smithery.ai — The MCP Tool Marketplace
+# https://smithery.ai — The Model Context Protocol Marketplace
 
 name: agenttools
-displayName: "AgentTools — Essential Tools for AI Agents"
-version: "1.0.0"
+displayName: "AgentTools — Enterprise AI Agent Suite & Invoice Intelligence"
+version: "1.1.0"
 description: >
-  7 powerful, ready-to-use tools for agentic AI systems:
-  web reader, DuckDuckGo search, real-time weather, safe calculator,
-  news headlines, extractive summarizer, and IP geolocation.
-  Zero-cost external data sources. No extra API keys required.
+  High-value MCP tools for Claude Desktop, Cursor, and Windsurf:
+  Financial & invoice extraction with math verification, PDF document
+  intelligence with token budgets, token-efficient Markdown web scraping,
+  live search, news, and weather. Zero third-party API keys required.
 
-author: "Your Name"
-homepage: "https://github.com/yourusername/agent-apis"
+author: "kulas-100"
+homepage: "https://github.com/kulas-100/agent-tools"
 license: MIT
 
 # How to start this MCP server
@@ -22,19 +22,63 @@ startCommand:
   env:
     PYTHONPATH: "."
 
-# Tool manifest — describes each tool for discovery
+# Tool manifest — describes each tool for MCP client discovery
 tools:
+  - name: invoice_extract
+    description: "Extract structured financial data from invoices and receipts (vendor, invoice #, line items, totals, dates, tax with math verification)"
+    inputSchema:
+      type: object
+      properties:
+        url:
+          type: string
+          description: "URL to invoice PDF or receipt image"
+        file_base64:
+          type: string
+          description: "Base64-encoded invoice file"
+        raw_text:
+          type: string
+          description: "Raw invoice text if already available"
+        currency_hint:
+          type: string
+          description: "Default currency code fallback (e.g. USD, EUR)"
+          default: "USD"
+
+  - name: pdf_extract
+    description: "Extract structured text per page, metadata, and estimated token counts from a PDF document (via URL or Base64)"
+    inputSchema:
+      type: object
+      properties:
+        url:
+          type: string
+          description: "Direct URL of the PDF"
+        file_base64:
+          type: string
+          description: "Base64-encoded PDF binary"
+        max_pages:
+          type: integer
+          description: "Maximum pages to extract (default 15)"
+          default: 15
+        start_page:
+          type: integer
+          description: "Starting page number (default 1)"
+          default: 1
+
   - name: web_reader
-    description: "Fetch and extract clean readable text from any public webpage URL"
+    description: "Fetch any public webpage URL and extract clean, structured Markdown optimized for LLM token efficiency"
     inputSchema:
       type: object
       properties:
         url:
           type: string
           description: "The full URL to fetch"
-        max_chars:
+        max_length:
           type: integer
-          description: "Maximum characters to return (default 5000)"
+          description: "Max markdown length (default 15000)"
+          default: 15000
+        include_links:
+          type: boolean
+          description: "Whether to return page links catalog"
+          default: false
       required: [url]
 
   - name: web_search
@@ -48,6 +92,7 @@ tools:
         max_results:
           type: integer
           description: "Number of results (1-20, default 5)"
+          default: 5
       required: [query]
 
   - name: get_weather
@@ -61,17 +106,8 @@ tools:
         forecast_days:
           type: integer
           description: "Forecast days (1-7, default 3)"
+          default: 3
       required: [location]
-
-  - name: calculator
-    description: "Safely evaluate mathematical expressions (arithmetic, trig, log, sqrt)"
-    inputSchema:
-      type: object
-      properties:
-        expression:
-          type: string
-          description: "Math expression (e.g. 'sqrt(144)', 'sin(pi/2)', '2**10')"
-      required: [expression]
 
   - name: get_news
     description: "Fetch latest news headlines and summaries for any topic"
@@ -84,6 +120,7 @@ tools:
         max_articles:
           type: integer
           description: "Number of articles (1-20, default 5)"
+          default: 5
       required: [topic]
 
   - name: summarize
@@ -97,6 +134,7 @@ tools:
         num_sentences:
           type: integer
           description: "Number of output sentences (1-10, default 3)"
+          default: 3
       required: [text]
 
   - name: get_ip_info
