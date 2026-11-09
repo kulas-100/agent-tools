@@ -1,0 +1,1384 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "AgentTools API",
+    "description": "\n## \ud83e\udd16 AgentTools \u2014 High-Value Tool APIs for Agentic AI Systems\n\nA production-grade platform providing powerful, ready-to-use tools for AI agents,\ncompatible with **OpenAI function calling**, **Claude tool use**, **LangChain**, **CrewAI**,\nand any framework that can make HTTP requests.\n\n### \ud83d\udee0\ufe0f Core Agentic Tools\n\n| Tool | Endpoint | Description |\n|------|----------|-------------|\n| \ud83d\udcc4 PDF & Document Intelligence | `POST /tools/pdf-extract` | Extract structured pages, metadata, outlines & token counts from PDFs |\n| \ud83c\udf10 Markdown Web Scraper | `POST /tools/web-reader` | Clean HTML & convert pages to LLM-optimized Markdown with token counts |\n| \ud83d\udd0d Web Search | `POST /tools/web-search` | Search the web via DuckDuckGo with structured snippets |\n| \ud83d\udcf0 News Intelligence | `POST /tools/news` | Real-time news headlines & summaries by topic |\n| \ud83d\udcdd Text Summarizer | `POST /tools/summarize` | Fast extractive text summarization |\n| \u2601\ufe0f Weather | `POST /tools/weather` | Global real-time weather + forecasts |\n| \ud83e\uddee Safe Calculator | `POST /tools/calculator` | Safe mathematical expression evaluator |\n| \ud83c\udf0d IP Info | `GET /tools/ip-info` | IP geolocation & network metadata |\n\n### \ud83d\udd11 Authentication\nPass your API key in the **`X-API-Key`** header.\nRapidAPI users can use the **`X-RapidAPI-Key`** header automatically.\n\n### \ud83d\udcca Rate Limits\n| Tier | Daily Calls | Rate |\n|------|-------------|------|\n| Free | 100/day | Standard |\n| Pro | 10,000/day | Standard |\n| Enterprise | Unlimited | Priority |\n",
+    "contact": {
+      "name": "AgentTools API",
+      "url": "https://github.com/kulas-100/agent-tools",
+      "email": "hello@agenttools.dev"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    },
+    "version": "1.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Health check",
+        "description": "Returns server health status. No authentication required.",
+        "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/usage": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Get my usage stats",
+        "description": "Returns current API key usage stats including daily and total call counts.",
+        "operationId": "get_my_usage_usage_get",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Your AgentTools API key",
+              "title": "X-Api-Key"
+            },
+            "description": "Your AgentTools API key"
+          },
+          {
+            "name": "X-RapidAPI-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "RapidAPI key (if using RapidAPI marketplace)",
+              "title": "X-Rapidapi-Key"
+            },
+            "description": "RapidAPI key (if using RapidAPI marketplace)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tools/pdf-extract": {
+      "post": {
+        "tags": [
+          "Tools"
+        ],
+        "summary": "Extract text and metadata from PDF",
+        "description": "Downloads or decodes a PDF document and extracts structured text per page, document metadata (title, author), total page count, document outlines, and estimated LLM token count. Designed specifically for AI agent document ingestion.",
+        "operationId": "pdf_extract_endpoint_tools_pdf_extract_post",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Your AgentTools API key",
+              "title": "X-Api-Key"
+            },
+            "description": "Your AgentTools API key"
+          },
+          {
+            "name": "X-RapidAPI-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "RapidAPI key (if using RapidAPI marketplace)",
+              "title": "X-Rapidapi-Key"
+            },
+            "description": "RapidAPI key (if using RapidAPI marketplace)"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PDFExtractRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PDFExtractResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tools/web-reader": {
+      "post": {
+        "tags": [
+          "Tools"
+        ],
+        "summary": "Scrape and convert webpage to Markdown",
+        "description": "Fetches any public URL and converts the main content into clean, structured Markdown. Strips navigation bars, cookie banners, tracking scripts, and ads while preserving headers, tables, lists, and code blocks. Includes word count and estimated LLM token count.",
+        "operationId": "web_reader_endpoint_tools_web_reader_post",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Your AgentTools API key",
+              "title": "X-Api-Key"
+            },
+            "description": "Your AgentTools API key"
+          },
+          {
+            "name": "X-RapidAPI-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "RapidAPI key (if using RapidAPI marketplace)",
+              "title": "X-Rapidapi-Key"
+            },
+            "description": "RapidAPI key (if using RapidAPI marketplace)"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebReaderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebReaderResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tools/web-search": {
+      "post": {
+        "tags": [
+          "Tools"
+        ],
+        "summary": "Search the web",
+        "description": "Searches the web using DuckDuckGo and returns structured results (title, URL, snippet). No API key required for the underlying search engine.",
+        "operationId": "web_search_endpoint_tools_web_search_post",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Your AgentTools API key",
+              "title": "X-Api-Key"
+            },
+            "description": "Your AgentTools API key"
+          },
+          {
+            "name": "X-RapidAPI-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "RapidAPI key (if using RapidAPI marketplace)",
+              "title": "X-Rapidapi-Key"
+            },
+            "description": "RapidAPI key (if using RapidAPI marketplace)"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebSearchRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebSearchResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tools/weather": {
+      "post": {
+        "tags": [
+          "Tools"
+        ],
+        "summary": "Get weather data",
+        "description": "Returns current weather conditions and a multi-day forecast for any location worldwide. Powered by Open-Meteo (free, no API key required). Supports any city name, region, or country.",
+        "operationId": "weather_endpoint_tools_weather_post",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Your AgentTools API key",
+              "title": "X-Api-Key"
+            },
+            "description": "Your AgentTools API key"
+          },
+          {
+            "name": "X-RapidAPI-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "RapidAPI key (if using RapidAPI marketplace)",
+              "title": "X-Rapidapi-Key"
+            },
+            "description": "RapidAPI key (if using RapidAPI marketplace)"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WeatherRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeatherData"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tools/calculator": {
+      "post": {
+        "tags": [
+          "Tools"
+        ],
+        "summary": "Evaluate a math expression",
+        "description": "Safely evaluates mathematical expressions using AST parsing (no `eval()`). Supports arithmetic, exponents, modulo, trigonometry (sin, cos, tan), logarithms (log, log2, log10), sqrt, factorial, and constants (pi, e, tau).",
+        "operationId": "calculator_endpoint_tools_calculator_post",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Your AgentTools API key",
+              "title": "X-Api-Key"
+            },
+            "description": "Your AgentTools API key"
+          },
+          {
+            "name": "X-RapidAPI-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "RapidAPI key (if using RapidAPI marketplace)",
+              "title": "X-Rapidapi-Key"
+            },
+            "description": "RapidAPI key (if using RapidAPI marketplace)"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalculatorRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalculatorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tools/news": {
+      "post": {
+        "tags": [
+          "Tools"
+        ],
+        "summary": "Get latest news by topic",
+        "description": "Fetches the latest news headlines and summaries for any topic using Google News RSS. Returns clean article titles, sources, publication dates, URLs, and snippet text.",
+        "operationId": "news_endpoint_tools_news_post",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Your AgentTools API key",
+              "title": "X-Api-Key"
+            },
+            "description": "Your AgentTools API key"
+          },
+          {
+            "name": "X-RapidAPI-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "RapidAPI key (if using RapidAPI marketplace)",
+              "title": "X-Rapidapi-Key"
+            },
+            "description": "RapidAPI key (if using RapidAPI marketplace)"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NewsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tools/summarize": {
+      "post": {
+        "tags": [
+          "Tools"
+        ],
+        "summary": "Summarize long text",
+        "description": "Extracts the most important sentences from any long text using frequency-based sentence scoring. Zero-cost \u2014 runs on-server with no external LLM API fees. Returns summary, sentence count, and compression ratio.",
+        "operationId": "summarize_endpoint_tools_summarize_post",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Your AgentTools API key",
+              "title": "X-Api-Key"
+            },
+            "description": "Your AgentTools API key"
+          },
+          {
+            "name": "X-RapidAPI-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "RapidAPI key (if using RapidAPI marketplace)",
+              "title": "X-Rapidapi-Key"
+            },
+            "description": "RapidAPI key (if using RapidAPI marketplace)"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SummarizeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SummarizeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tools/ip-info": {
+      "get": {
+        "tags": [
+          "Tools"
+        ],
+        "summary": "Get IP geolocation info",
+        "description": "Looks up geolocation data for an IP address or the requesting client. Returns city, region, country, coordinates, timezone, and ISP information.",
+        "operationId": "ip_info_endpoint_tools_ip_info_get",
+        "parameters": [
+          {
+            "name": "ip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "IP address to lookup. If omitted, uses caller IP.",
+              "title": "Ip"
+            },
+            "description": "IP address to lookup. If omitted, uses caller IP."
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Your AgentTools API key",
+              "title": "X-Api-Key"
+            },
+            "description": "Your AgentTools API key"
+          },
+          {
+            "name": "X-RapidAPI-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "RapidAPI key (if using RapidAPI marketplace)",
+              "title": "X-Rapidapi-Key"
+            },
+            "description": "RapidAPI key (if using RapidAPI marketplace)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IPInfoResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CalculatorRequest": {
+        "properties": {
+          "expression": {
+            "type": "string",
+            "title": "Expression",
+            "description": "Mathematical expression to evaluate (e.g. '2 + 2 * 10', 'sqrt(144)', 'sin(pi/2)')"
+          }
+        },
+        "type": "object",
+        "required": [
+          "expression"
+        ],
+        "title": "CalculatorRequest"
+      },
+      "CalculatorResponse": {
+        "properties": {
+          "expression": {
+            "type": "string",
+            "title": "Expression"
+          },
+          "result": {
+            "type": "number",
+            "title": "Result"
+          },
+          "result_str": {
+            "type": "string",
+            "title": "Result Str"
+          }
+        },
+        "type": "object",
+        "required": [
+          "expression",
+          "result",
+          "result_str"
+        ],
+        "title": "CalculatorResponse"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "IPInfoResponse": {
+        "properties": {
+          "ip": {
+            "type": "string",
+            "title": "Ip"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          },
+          "country": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country"
+          },
+          "country_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country Code"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
+          },
+          "isp": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Isp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ip"
+        ],
+        "title": "IPInfoResponse"
+      },
+      "NewsArticle": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "published": {
+            "type": "string",
+            "title": "Published"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "source",
+          "url",
+          "published",
+          "summary"
+        ],
+        "title": "NewsArticle"
+      },
+      "NewsRequest": {
+        "properties": {
+          "topic": {
+            "type": "string",
+            "title": "Topic",
+            "description": "News topic or keyword (e.g. 'AI', 'climate change', 'bitcoin')"
+          },
+          "max_articles": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 20.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Articles",
+            "description": "Number of articles to return (max 20)",
+            "default": 5
+          }
+        },
+        "type": "object",
+        "required": [
+          "topic"
+        ],
+        "title": "NewsRequest"
+      },
+      "NewsResponse": {
+        "properties": {
+          "topic": {
+            "type": "string",
+            "title": "Topic"
+          },
+          "articles": {
+            "items": {
+              "$ref": "#/components/schemas/NewsArticle"
+            },
+            "type": "array",
+            "title": "Articles"
+          }
+        },
+        "type": "object",
+        "required": [
+          "topic",
+          "articles"
+        ],
+        "title": "NewsResponse"
+      },
+      "PDFExtractRequest": {
+        "properties": {
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url",
+            "description": "Direct URL of the PDF to download and extract"
+          },
+          "file_base64": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "File Base64",
+            "description": "Base64-encoded PDF content"
+          },
+          "max_pages": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Pages",
+            "description": "Maximum pages to extract to protect token limits",
+            "default": 15
+          },
+          "start_page": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Page",
+            "description": "Starting page number (1-indexed)",
+            "default": 1
+          }
+        },
+        "type": "object",
+        "title": "PDFExtractRequest"
+      },
+      "PDFExtractResponse": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "author": {
+            "type": "string",
+            "title": "Author"
+          },
+          "total_pages": {
+            "type": "integer",
+            "title": "Total Pages"
+          },
+          "pages_extracted": {
+            "type": "integer",
+            "title": "Pages Extracted"
+          },
+          "word_count": {
+            "type": "integer",
+            "title": "Word Count"
+          },
+          "estimated_tokens": {
+            "type": "integer",
+            "title": "Estimated Tokens"
+          },
+          "pages": {
+            "items": {
+              "$ref": "#/components/schemas/PDFPageContent"
+            },
+            "type": "array",
+            "title": "Pages"
+          },
+          "full_text": {
+            "type": "string",
+            "title": "Full Text"
+          },
+          "outline": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Outline",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "author",
+          "total_pages",
+          "pages_extracted",
+          "word_count",
+          "estimated_tokens",
+          "pages",
+          "full_text"
+        ],
+        "title": "PDFExtractResponse"
+      },
+      "PDFPageContent": {
+        "properties": {
+          "page_number": {
+            "type": "integer",
+            "title": "Page Number"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "char_count": {
+            "type": "integer",
+            "title": "Char Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "page_number",
+          "text",
+          "char_count"
+        ],
+        "title": "PDFPageContent"
+      },
+      "SearchResult": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "snippet": {
+            "type": "string",
+            "title": "Snippet"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "url",
+          "snippet"
+        ],
+        "title": "SearchResult"
+      },
+      "SummarizeRequest": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 50000,
+            "title": "Text",
+            "description": "Text to summarize (max 50,000 characters)"
+          },
+          "num_sentences": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Num Sentences",
+            "description": "Number of sentences in output summary",
+            "default": 3
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "SummarizeRequest"
+      },
+      "SummarizeResponse": {
+        "properties": {
+          "original_length": {
+            "type": "integer",
+            "title": "Original Length"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "summary_length": {
+            "type": "integer",
+            "title": "Summary Length"
+          },
+          "compression_ratio": {
+            "type": "number",
+            "title": "Compression Ratio"
+          }
+        },
+        "type": "object",
+        "required": [
+          "original_length",
+          "summary",
+          "summary_length",
+          "compression_ratio"
+        ],
+        "title": "SummarizeResponse"
+      },
+      "UsageResponse": {
+        "properties": {
+          "api_key": {
+            "type": "string",
+            "title": "Api Key"
+          },
+          "tier": {
+            "type": "string",
+            "title": "Tier"
+          },
+          "total_calls": {
+            "type": "integer",
+            "title": "Total Calls"
+          },
+          "daily_calls": {
+            "type": "integer",
+            "title": "Daily Calls"
+          },
+          "daily_limit": {
+            "type": "integer",
+            "title": "Daily Limit"
+          },
+          "remaining_today": {
+            "type": "integer",
+            "title": "Remaining Today"
+          }
+        },
+        "type": "object",
+        "required": [
+          "api_key",
+          "tier",
+          "total_calls",
+          "daily_calls",
+          "daily_limit",
+          "remaining_today"
+        ],
+        "title": "UsageResponse"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "WeatherData": {
+        "properties": {
+          "location": {
+            "type": "string",
+            "title": "Location"
+          },
+          "latitude": {
+            "type": "number",
+            "title": "Latitude"
+          },
+          "longitude": {
+            "type": "number",
+            "title": "Longitude"
+          },
+          "current_temperature_c": {
+            "type": "number",
+            "title": "Current Temperature C"
+          },
+          "current_temperature_f": {
+            "type": "number",
+            "title": "Current Temperature F"
+          },
+          "wind_speed_kmh": {
+            "type": "number",
+            "title": "Wind Speed Kmh"
+          },
+          "weather_description": {
+            "type": "string",
+            "title": "Weather Description"
+          },
+          "forecast": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Forecast"
+          }
+        },
+        "type": "object",
+        "required": [
+          "location",
+          "latitude",
+          "longitude",
+          "current_temperature_c",
+          "current_temperature_f",
+          "wind_speed_kmh",
+          "weather_description",
+          "forecast"
+        ],
+        "title": "WeatherData"
+      },
+      "WeatherRequest": {
+        "properties": {
+          "location": {
+            "type": "string",
+            "title": "Location",
+            "description": "City or location name (e.g. 'London', 'New York', 'Tokyo')"
+          },
+          "forecast_days": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 7.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Forecast Days",
+            "description": "Number of forecast days (1-7)",
+            "default": 3
+          }
+        },
+        "type": "object",
+        "required": [
+          "location"
+        ],
+        "title": "WeatherRequest"
+      },
+      "WebReaderRequest": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "title": "Url",
+            "description": "The URL to fetch, clean, and convert to Markdown"
+          },
+          "max_length": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 50000.0,
+                "minimum": 100.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Length",
+            "description": "Maximum characters of Markdown to return",
+            "default": 15000
+          },
+          "include_links": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Include Links",
+            "description": "Whether to extract and list links from the page",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "url"
+        ],
+        "title": "WebReaderRequest"
+      },
+      "WebReaderResponse": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "markdown": {
+            "type": "string",
+            "title": "Markdown"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          },
+          "word_count": {
+            "type": "integer",
+            "title": "Word Count"
+          },
+          "estimated_tokens": {
+            "type": "integer",
+            "title": "Estimated Tokens"
+          },
+          "truncated": {
+            "type": "boolean",
+            "title": "Truncated",
+            "default": false
+          },
+          "links": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Links",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "url",
+          "title",
+          "markdown",
+          "content",
+          "word_count",
+          "estimated_tokens"
+        ],
+        "title": "WebReaderResponse"
+      },
+      "WebSearchRequest": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "title": "Query",
+            "description": "The search query string"
+          },
+          "max_results": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 20.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Results",
+            "description": "Number of results to return (max 20)",
+            "default": 5
+          }
+        },
+        "type": "object",
+        "required": [
+          "query"
+        ],
+        "title": "WebSearchRequest"
+      },
+      "WebSearchResponse": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "title": "Query"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/SearchResult"
+            },
+            "type": "array",
+            "title": "Results"
+          }
+        },
+        "type": "object",
+        "required": [
+          "query",
+          "results"
+        ],
+        "title": "WebSearchResponse"
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "https://antibodies-need-maps-starter.trycloudflare.com",
+      "description": "Cloudflare Tunnel Live Gateway"
+    }
+  ]
+}
