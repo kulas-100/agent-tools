@@ -17,6 +17,7 @@ from app.auth import verify_api_key
 from app.models import (
     WebReaderRequest, WebReaderResponse,
     PDFExtractRequest, PDFExtractResponse,
+    InvoiceExtractRequest, InvoiceExtractResponse,
     WebSearchRequest, WebSearchResponse,
     WeatherRequest, WeatherData,
     CalculatorRequest, CalculatorResponse,
@@ -26,6 +27,7 @@ from app.models import (
 )
 from app.tools.web_reader import read_webpage
 from app.tools.pdf_extractor import extract_pdf
+from app.tools.invoice_extractor import extract_invoice
 from app.tools.web_search import search_web
 from app.tools.weather import get_weather
 from app.tools.calculator import calculate
@@ -57,6 +59,7 @@ and any framework that can make HTTP requests.
 
 | Tool | Endpoint | Description |
 |------|----------|-------------|
+| 🧾 Invoice & Receipt Intelligence | `POST /tools/invoice-extract` | Extract structured JSON (vendor, line items, totals, dates, math verify) |
 | 📄 PDF & Document Intelligence | `POST /tools/pdf-extract` | Extract structured pages, metadata, outlines & token counts from PDFs |
 | 🌐 Markdown Web Scraper | `POST /tools/web-reader` | Clean HTML & convert pages to LLM-optimized Markdown with token counts |
 | 🔍 Web Search | `POST /tools/web-search` | Search the web via DuckDuckGo with structured snippets |
@@ -134,6 +137,30 @@ async def get_my_usage(auth: dict = Depends(verify_api_key)):
 
 
 # ─── Tool Endpoints ───────────────────────────────────────────────────────────
+
+@app.post(
+    "/tools/invoice-extract",
+    response_model=InvoiceExtractResponse,
+    tags=["Tools"],
+    summary="Extract structured data from invoices and receipts",
+    description=(
+        "Parses PDF, image, or raw text invoices/receipts into rigid structured JSON: "
+        "vendor name, invoice number, PO number, dates, currency, line items table, subtotal, "
+        "tax amount, total amount, and automatic math verification. Built for accounting AI agents."
+    ),
+)
+async def invoice_extract_endpoint(
+    request: InvoiceExtractRequest,
+    auth: dict = Depends(verify_api_key),
+):
+    try:
+        await record_call(auth["key_id"], "/tools/invoice-extract")
+        return await extract_invoice(request)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Invoice extraction error: {str(e)}")
+
 
 @app.post(
     "/tools/pdf-extract",

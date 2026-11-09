@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "AgentTools API",
-    "description": "\n## \ud83e\udd16 AgentTools \u2014 High-Value Tool APIs for Agentic AI Systems\n\nA production-grade platform providing powerful, ready-to-use tools for AI agents,\ncompatible with **OpenAI function calling**, **Claude tool use**, **LangChain**, **CrewAI**,\nand any framework that can make HTTP requests.\n\n### \ud83d\udee0\ufe0f Core Agentic Tools\n\n| Tool | Endpoint | Description |\n|------|----------|-------------|\n| \ud83d\udcc4 PDF & Document Intelligence | `POST /tools/pdf-extract` | Extract structured pages, metadata, outlines & token counts from PDFs |\n| \ud83c\udf10 Markdown Web Scraper | `POST /tools/web-reader` | Clean HTML & convert pages to LLM-optimized Markdown with token counts |\n| \ud83d\udd0d Web Search | `POST /tools/web-search` | Search the web via DuckDuckGo with structured snippets |\n| \ud83d\udcf0 News Intelligence | `POST /tools/news` | Real-time news headlines & summaries by topic |\n| \ud83d\udcdd Text Summarizer | `POST /tools/summarize` | Fast extractive text summarization |\n| \u2601\ufe0f Weather | `POST /tools/weather` | Global real-time weather + forecasts |\n| \ud83e\uddee Safe Calculator | `POST /tools/calculator` | Safe mathematical expression evaluator |\n| \ud83c\udf0d IP Info | `GET /tools/ip-info` | IP geolocation & network metadata |\n\n### \ud83d\udd11 Authentication\nPass your API key in the **`X-API-Key`** header.\nRapidAPI users can use the **`X-RapidAPI-Key`** header automatically.\n\n### \ud83d\udcca Rate Limits\n| Tier | Daily Calls | Rate |\n|------|-------------|------|\n| Free | 100/day | Standard |\n| Pro | 10,000/day | Standard |\n| Enterprise | Unlimited | Priority |\n",
+    "description": "\n## \ud83e\udd16 AgentTools \u2014 High-Value Tool APIs for Agentic AI Systems\n\nA production-grade platform providing powerful, ready-to-use tools for AI agents,\ncompatible with **OpenAI function calling**, **Claude tool use**, **LangChain**, **CrewAI**,\nand any framework that can make HTTP requests.\n\n### \ud83d\udee0\ufe0f Core Agentic Tools\n\n| Tool | Endpoint | Description |\n|------|----------|-------------|\n| \ud83e\uddfe Invoice & Receipt Intelligence | `POST /tools/invoice-extract` | Extract structured JSON (vendor, line items, totals, dates, math verify) |\n| \ud83d\udcc4 PDF & Document Intelligence | `POST /tools/pdf-extract` | Extract structured pages, metadata, outlines & token counts from PDFs |\n| \ud83c\udf10 Markdown Web Scraper | `POST /tools/web-reader` | Clean HTML & convert pages to LLM-optimized Markdown with token counts |\n| \ud83d\udd0d Web Search | `POST /tools/web-search` | Search the web via DuckDuckGo with structured snippets |\n| \ud83d\udcf0 News Intelligence | `POST /tools/news` | Real-time news headlines & summaries by topic |\n| \ud83d\udcdd Text Summarizer | `POST /tools/summarize` | Fast extractive text summarization |\n| \u2601\ufe0f Weather | `POST /tools/weather` | Global real-time weather + forecasts |\n| \ud83e\uddee Safe Calculator | `POST /tools/calculator` | Safe mathematical expression evaluator |\n| \ud83c\udf0d IP Info | `GET /tools/ip-info` | IP geolocation & network metadata |\n\n### \ud83d\udd11 Authentication\nPass your API key in the **`X-API-Key`** header.\nRapidAPI users can use the **`X-RapidAPI-Key`** header automatically.\n\n### \ud83d\udcca Rate Limits\n| Tier | Daily Calls | Rate |\n|------|-------------|------|\n| Free | 100/day | Standard |\n| Pro | 10,000/day | Standard |\n| Enterprise | Unlimited | Priority |\n",
     "contact": {
       "name": "AgentTools API",
       "url": "https://github.com/kulas-100/agent-tools",
@@ -49,7 +49,14 @@
             "in": "header",
             "required": false,
             "schema": {
-              "type": "string",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
               "description": "Your AgentTools API key",
               "title": "X-Api-Key"
             },
@@ -60,11 +67,54 @@
             "in": "header",
             "required": false,
             "schema": {
-              "type": "string",
-              "description": "RapidAPI key (if using RapidAPI marketplace)",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "RapidAPI key",
               "title": "X-Rapidapi-Key"
             },
-            "description": "RapidAPI key (if using RapidAPI marketplace)"
+            "description": "RapidAPI key"
+          },
+          {
+            "name": "X-RapidAPI-User",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "RapidAPI username",
+              "title": "X-Rapidapi-User"
+            },
+            "description": "RapidAPI username"
+          },
+          {
+            "name": "X-RapidAPI-Proxy-Secret",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "RapidAPI gateway secret",
+              "title": "X-Rapidapi-Proxy-Secret"
+            },
+            "description": "RapidAPI gateway secret"
           }
         ],
         "responses": {
@@ -74,6 +124,122 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/UsageResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tools/invoice-extract": {
+      "post": {
+        "tags": [
+          "Tools"
+        ],
+        "summary": "Extract structured data from invoices and receipts",
+        "description": "Parses PDF, image, or raw text invoices/receipts into rigid structured JSON: vendor name, invoice number, PO number, dates, currency, line items table, subtotal, tax amount, total amount, and automatic math verification. Built for accounting AI agents.",
+        "operationId": "invoice_extract_endpoint_tools_invoice_extract_post",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Your AgentTools API key",
+              "title": "X-Api-Key"
+            },
+            "description": "Your AgentTools API key"
+          },
+          {
+            "name": "X-RapidAPI-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "RapidAPI key",
+              "title": "X-Rapidapi-Key"
+            },
+            "description": "RapidAPI key"
+          },
+          {
+            "name": "X-RapidAPI-User",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "RapidAPI username",
+              "title": "X-Rapidapi-User"
+            },
+            "description": "RapidAPI username"
+          },
+          {
+            "name": "X-RapidAPI-Proxy-Secret",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "RapidAPI gateway secret",
+              "title": "X-Rapidapi-Proxy-Secret"
+            },
+            "description": "RapidAPI gateway secret"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvoiceExtractRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceExtractResponse"
                 }
               }
             }
@@ -105,7 +271,14 @@
             "in": "header",
             "required": false,
             "schema": {
-              "type": "string",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
               "description": "Your AgentTools API key",
               "title": "X-Api-Key"
             },
@@ -116,11 +289,54 @@
             "in": "header",
             "required": false,
             "schema": {
-              "type": "string",
-              "description": "RapidAPI key (if using RapidAPI marketplace)",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "RapidAPI key",
               "title": "X-Rapidapi-Key"
             },
-            "description": "RapidAPI key (if using RapidAPI marketplace)"
+            "description": "RapidAPI key"
+          },
+          {
+            "name": "X-RapidAPI-User",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "RapidAPI username",
+              "title": "X-Rapidapi-User"
+            },
+            "description": "RapidAPI username"
+          },
+          {
+            "name": "X-RapidAPI-Proxy-Secret",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "RapidAPI gateway secret",
+              "title": "X-Rapidapi-Proxy-Secret"
+            },
+            "description": "RapidAPI gateway secret"
           }
         ],
         "requestBody": {
@@ -171,7 +387,14 @@
             "in": "header",
             "required": false,
             "schema": {
-              "type": "string",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
               "description": "Your AgentTools API key",
               "title": "X-Api-Key"
             },
@@ -182,11 +405,54 @@
             "in": "header",
             "required": false,
             "schema": {
-              "type": "string",
-              "description": "RapidAPI key (if using RapidAPI marketplace)",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "RapidAPI key",
               "title": "X-Rapidapi-Key"
             },
-            "description": "RapidAPI key (if using RapidAPI marketplace)"
+            "description": "RapidAPI key"
+          },
+          {
+            "name": "X-RapidAPI-User",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "RapidAPI username",
+              "title": "X-Rapidapi-User"
+            },
+            "description": "RapidAPI username"
+          },
+          {
+            "name": "X-RapidAPI-Proxy-Secret",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "RapidAPI gateway secret",
+              "title": "X-Rapidapi-Proxy-Secret"
+            },
+            "description": "RapidAPI gateway secret"
           }
         ],
         "requestBody": {
@@ -237,7 +503,14 @@
             "in": "header",
             "required": false,
             "schema": {
-              "type": "string",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
               "description": "Your AgentTools API key",
               "title": "X-Api-Key"
             },
@@ -248,11 +521,54 @@
             "in": "header",
             "required": false,
             "schema": {
-              "type": "string",
-              "description": "RapidAPI key (if using RapidAPI marketplace)",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "RapidAPI key",
               "title": "X-Rapidapi-Key"
             },
-            "description": "RapidAPI key (if using RapidAPI marketplace)"
+            "description": "RapidAPI key"
+          },
+          {
+            "name": "X-RapidAPI-User",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "RapidAPI username",
+              "title": "X-Rapidapi-User"
+            },
+            "description": "RapidAPI username"
+          },
+          {
+            "name": "X-RapidAPI-Proxy-Secret",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "RapidAPI gateway secret",
+              "title": "X-Rapidapi-Proxy-Secret"
+            },
+            "description": "RapidAPI gateway secret"
           }
         ],
         "requestBody": {
@@ -303,7 +619,14 @@
             "in": "header",
             "required": false,
             "schema": {
-              "type": "string",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
               "description": "Your AgentTools API key",
               "title": "X-Api-Key"
             },
@@ -314,11 +637,54 @@
             "in": "header",
             "required": false,
             "schema": {
-              "type": "string",
-              "description": "RapidAPI key (if using RapidAPI marketplace)",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "RapidAPI key",
               "title": "X-Rapidapi-Key"
             },
-            "description": "RapidAPI key (if using RapidAPI marketplace)"
+            "description": "RapidAPI key"
+          },
+          {
+            "name": "X-RapidAPI-User",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "RapidAPI username",
+              "title": "X-Rapidapi-User"
+            },
+            "description": "RapidAPI username"
+          },
+          {
+            "name": "X-RapidAPI-Proxy-Secret",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "RapidAPI gateway secret",
+              "title": "X-Rapidapi-Proxy-Secret"
+            },
+            "description": "RapidAPI gateway secret"
           }
         ],
         "requestBody": {
@@ -369,7 +735,14 @@
             "in": "header",
             "required": false,
             "schema": {
-              "type": "string",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
               "description": "Your AgentTools API key",
               "title": "X-Api-Key"
             },
@@ -380,11 +753,54 @@
             "in": "header",
             "required": false,
             "schema": {
-              "type": "string",
-              "description": "RapidAPI key (if using RapidAPI marketplace)",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "RapidAPI key",
               "title": "X-Rapidapi-Key"
             },
-            "description": "RapidAPI key (if using RapidAPI marketplace)"
+            "description": "RapidAPI key"
+          },
+          {
+            "name": "X-RapidAPI-User",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "RapidAPI username",
+              "title": "X-Rapidapi-User"
+            },
+            "description": "RapidAPI username"
+          },
+          {
+            "name": "X-RapidAPI-Proxy-Secret",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "RapidAPI gateway secret",
+              "title": "X-Rapidapi-Proxy-Secret"
+            },
+            "description": "RapidAPI gateway secret"
           }
         ],
         "requestBody": {
@@ -435,7 +851,14 @@
             "in": "header",
             "required": false,
             "schema": {
-              "type": "string",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
               "description": "Your AgentTools API key",
               "title": "X-Api-Key"
             },
@@ -446,11 +869,54 @@
             "in": "header",
             "required": false,
             "schema": {
-              "type": "string",
-              "description": "RapidAPI key (if using RapidAPI marketplace)",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "RapidAPI key",
               "title": "X-Rapidapi-Key"
             },
-            "description": "RapidAPI key (if using RapidAPI marketplace)"
+            "description": "RapidAPI key"
+          },
+          {
+            "name": "X-RapidAPI-User",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "RapidAPI username",
+              "title": "X-Rapidapi-User"
+            },
+            "description": "RapidAPI username"
+          },
+          {
+            "name": "X-RapidAPI-Proxy-Secret",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "RapidAPI gateway secret",
+              "title": "X-Rapidapi-Proxy-Secret"
+            },
+            "description": "RapidAPI gateway secret"
           }
         ],
         "requestBody": {
@@ -501,7 +967,14 @@
             "in": "header",
             "required": false,
             "schema": {
-              "type": "string",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
               "description": "Your AgentTools API key",
               "title": "X-Api-Key"
             },
@@ -512,11 +985,54 @@
             "in": "header",
             "required": false,
             "schema": {
-              "type": "string",
-              "description": "RapidAPI key (if using RapidAPI marketplace)",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "RapidAPI key",
               "title": "X-Rapidapi-Key"
             },
-            "description": "RapidAPI key (if using RapidAPI marketplace)"
+            "description": "RapidAPI key"
+          },
+          {
+            "name": "X-RapidAPI-User",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "RapidAPI username",
+              "title": "X-Rapidapi-User"
+            },
+            "description": "RapidAPI username"
+          },
+          {
+            "name": "X-RapidAPI-Proxy-Secret",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "RapidAPI gateway secret",
+              "title": "X-Rapidapi-Proxy-Secret"
+            },
+            "description": "RapidAPI gateway secret"
           }
         ],
         "requestBody": {
@@ -578,7 +1094,14 @@
             "in": "header",
             "required": false,
             "schema": {
-              "type": "string",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
               "description": "Your AgentTools API key",
               "title": "X-Api-Key"
             },
@@ -589,11 +1112,54 @@
             "in": "header",
             "required": false,
             "schema": {
-              "type": "string",
-              "description": "RapidAPI key (if using RapidAPI marketplace)",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "RapidAPI key",
               "title": "X-Rapidapi-Key"
             },
-            "description": "RapidAPI key (if using RapidAPI marketplace)"
+            "description": "RapidAPI key"
+          },
+          {
+            "name": "X-RapidAPI-User",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "RapidAPI username",
+              "title": "X-Rapidapi-User"
+            },
+            "description": "RapidAPI username"
+          },
+          {
+            "name": "X-RapidAPI-Proxy-Secret",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "RapidAPI gateway secret",
+              "title": "X-Rapidapi-Proxy-Secret"
+            },
+            "description": "RapidAPI gateway secret"
           }
         ],
         "responses": {
@@ -773,6 +1339,307 @@
           "ip"
         ],
         "title": "IPInfoResponse"
+      },
+      "InvoiceData": {
+        "properties": {
+          "document_type": {
+            "type": "string",
+            "title": "Document Type",
+            "default": "invoice"
+          },
+          "invoice_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Invoice Number"
+          },
+          "purchase_order": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Purchase Order"
+          },
+          "vendor_name": {
+            "type": "string",
+            "title": "Vendor Name",
+            "default": "Unknown Vendor"
+          },
+          "vendor_address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vendor Address"
+          },
+          "vendor_tax_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vendor Tax Id"
+          },
+          "customer_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer Name"
+          },
+          "customer_address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer Address"
+          },
+          "invoice_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Invoice Date"
+          },
+          "due_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Date"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency",
+            "default": "USD"
+          },
+          "subtotal": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subtotal"
+          },
+          "tax_amount": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tax Amount"
+          },
+          "tax_rate_percent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tax Rate Percent"
+          },
+          "total_amount": {
+            "type": "number",
+            "title": "Total Amount",
+            "default": 0.0
+          },
+          "line_items": {
+            "items": {
+              "$ref": "#/components/schemas/InvoiceLineItem"
+            },
+            "type": "array",
+            "title": "Line Items",
+            "default": []
+          },
+          "payment_terms": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payment Terms"
+          }
+        },
+        "type": "object",
+        "title": "InvoiceData"
+      },
+      "InvoiceExtractRequest": {
+        "properties": {
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url",
+            "description": "Direct URL of the PDF or image invoice/receipt"
+          },
+          "file_base64": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "File Base64",
+            "description": "Base64-encoded PDF or image file content"
+          },
+          "raw_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw Text",
+            "description": "Raw OCR or text of the invoice if already extracted"
+          },
+          "currency_hint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency Hint",
+            "description": "Default currency fallback if not detected",
+            "default": "USD"
+          }
+        },
+        "type": "object",
+        "title": "InvoiceExtractRequest"
+      },
+      "InvoiceExtractResponse": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "title": "Success"
+          },
+          "invoice": {
+            "$ref": "#/components/schemas/InvoiceData"
+          },
+          "confidence_score": {
+            "type": "number",
+            "title": "Confidence Score",
+            "description": "Calculated confidence score between 0.0 and 1.0"
+          },
+          "math_verified": {
+            "type": "boolean",
+            "title": "Math Verified",
+            "description": "Whether subtotal + tax equals total_amount"
+          },
+          "processing_time_ms": {
+            "type": "number",
+            "title": "Processing Time Ms"
+          },
+          "method_used": {
+            "type": "string",
+            "title": "Method Used",
+            "default": "deterministic_layout_engine"
+          }
+        },
+        "type": "object",
+        "required": [
+          "success",
+          "invoice",
+          "confidence_score",
+          "math_verified",
+          "processing_time_ms"
+        ],
+        "title": "InvoiceExtractResponse"
+      },
+      "InvoiceLineItem": {
+        "properties": {
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "quantity": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quantity",
+            "default": 1.0
+          },
+          "unit_price": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit Price"
+          },
+          "total_price": {
+            "type": "number",
+            "title": "Total Price"
+          }
+        },
+        "type": "object",
+        "required": [
+          "description",
+          "total_price"
+        ],
+        "title": "InvoiceLineItem"
       },
       "NewsArticle": {
         "properties": {
@@ -1377,7 +2244,7 @@
   },
   "servers": [
     {
-      "url": "https://antibodies-need-maps-starter.trycloudflare.com",
+      "url": "https://fri-disabled-annotated-opt.trycloudflare.com",
       "description": "Cloudflare Tunnel Live Gateway"
     }
   ]

@@ -26,6 +26,19 @@ import traceback
 
 TOOLS = [
     {
+        "name": "invoice_extract",
+        "description": "Extract structured financial data from invoices and receipts (vendor, invoice #, line items, totals, dates, tax).",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "url": {"type": "string", "description": "URL to invoice PDF or image"},
+                "file_base64": {"type": "string", "description": "Base64-encoded invoice file"},
+                "raw_text": {"type": "string", "description": "Raw invoice text if already extracted"},
+                "currency_hint": {"type": "string", "description": "Default currency code (default USD)", "default": "USD"},
+            },
+        },
+    },
+    {
         "name": "pdf_extract",
         "description": "Extract structured text per page, metadata, and estimated token counts from a PDF document (via URL or Base64).",
         "inputSchema": {
@@ -128,11 +141,35 @@ TOOLS = [
 async def execute_tool(name: str, arguments: dict) -> str:
     """Route tool call to the correct handler."""
     from app.models import (
-        WebReaderRequest, PDFExtractRequest, WebSearchRequest, WeatherRequest,
-        CalculatorRequest, NewsRequest, SummarizeRequest,
+        WebReaderRequest, PDFExtractRequest, InvoiceExtractRequest,
+        WebSearchRequest, WeatherRequest, CalculatorRequest, NewsRequest, SummarizeRequest,
     )
 
-    if name == "pdf_extract":
+    if name == "invoice_extract":
+        from app.tools.invoice_extractor import extract_invoice
+        result = await extract_invoice(InvoiceExtractRequest(
+            url=arguments.get("url"),
+            file_base64=arguments.get("file_base64"),
+            raw_text=arguments.get("raw_text"),
+            currency_hint=arguments.get("currency_hint", "USD"),
+        ))
+        inv = result.invoice
+        lines = [
+            f"=== Invoice Data (Confidence: {result.confidence_score*100}%, Math Verified: {result.math_verified}) ===",
+            f"Vendor: {inv.vendor_name}",
+            f"Invoice #: {inv.invoice_number or 'N/A'}",
+            f"Date: {inv.invoice_date or 'N/A'} | Due: {inv.due_date or 'N/A'}",
+            f"Customer: {inv.customer_name or 'N/A'}",
+            f"Subtotal: {inv.currency} {inv.subtotal or 0.0}",
+            f"Tax: {inv.currency} {inv.tax_amount or 0.0}",
+            f"Total: {inv.currency} {inv.total_amount}",
+            f"Line Items ({len(inv.line_items)}):",
+        ]
+        for it in inv.line_items:
+            lines.append(f" - {it.description}: {it.quantity} x {it.unit_price or 'N/A'} = {inv.currency} {it.total_price}")
+        return "\n".join(lines)
+
+    elif name == "pdf_extract":
         from app.tools.pdf_extractor import extract_pdf
         result = await extract_pdf(PDFExtractRequest(
             url=arguments.get("url"),

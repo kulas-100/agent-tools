@@ -48,6 +48,51 @@ class PDFExtractResponse(BaseModel):
     outline: List[str] = []
 
 
+# ─── 3. Financial & Invoice Intelligence ─────────────────────────────────────
+
+class InvoiceLineItem(BaseModel):
+    description: str
+    quantity: Optional[float] = 1.0
+    unit_price: Optional[float] = None
+    total_price: float
+
+
+class InvoiceData(BaseModel):
+    document_type: str = "invoice"
+    invoice_number: Optional[str] = None
+    purchase_order: Optional[str] = None
+    vendor_name: str = "Unknown Vendor"
+    vendor_address: Optional[str] = None
+    vendor_tax_id: Optional[str] = None
+    customer_name: Optional[str] = None
+    customer_address: Optional[str] = None
+    invoice_date: Optional[str] = None
+    due_date: Optional[str] = None
+    currency: str = "USD"
+    subtotal: Optional[float] = None
+    tax_amount: Optional[float] = None
+    tax_rate_percent: Optional[float] = None
+    total_amount: float = 0.0
+    line_items: List[InvoiceLineItem] = []
+    payment_terms: Optional[str] = None
+
+
+class InvoiceExtractRequest(BaseModel):
+    url: Optional[str] = Field(None, description="Direct URL of the PDF or image invoice/receipt")
+    file_base64: Optional[str] = Field(None, description="Base64-encoded PDF or image file content")
+    raw_text: Optional[str] = Field(None, description="Raw OCR or text of the invoice if already extracted")
+    currency_hint: Optional[str] = Field("USD", description="Default currency fallback if not detected")
+
+
+class InvoiceExtractResponse(BaseModel):
+    success: bool
+    invoice: InvoiceData
+    confidence_score: float = Field(..., description="Calculated confidence score between 0.0 and 1.0")
+    math_verified: bool = Field(..., description="Whether subtotal + tax equals total_amount")
+    processing_time_ms: float
+    method_used: str = "deterministic_layout_engine"
+
+
 # ─── 3. Web Search ───────────────────────────────────────────────────────────
 
 class WebSearchRequest(BaseModel):
