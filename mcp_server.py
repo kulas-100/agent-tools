@@ -27,109 +27,182 @@ import traceback
 TOOLS = [
     {
         "name": "invoice_extract",
-        "description": "Extract structured financial data from invoices and receipts (vendor, invoice #, line items, totals, dates, tax).",
+        "description": "Extract structured financial data (vendor, invoice #, PO #, dates, line items, subtotal, tax, total, currency) from invoices, receipts, and bills, verifying mathematical consistency (subtotal + tax == total). Use when processing accounting documents or receipts. Do not use for generic documents. Read-only and idempotent.",
         "inputSchema": {
             "type": "object",
             "properties": {
-                "url": {"type": "string", "description": "URL to invoice PDF or image"},
-                "file_base64": {"type": "string", "description": "Base64-encoded invoice file"},
-                "raw_text": {"type": "string", "description": "Raw invoice text if already extracted"},
-                "currency_hint": {"type": "string", "description": "Default currency code (default USD)", "default": "USD"},
+                "url": {
+                    "type": "string",
+                    "description": "Public HTTPS URL pointing directly to an invoice image or PDF file (e.g. 'https://example.com/invoice.pdf').",
+                },
+                "file_base64": {
+                    "type": "string",
+                    "description": "Base64-encoded file content of the invoice or receipt document.",
+                },
+                "raw_text": {
+                    "type": "string",
+                    "description": "Pre-extracted or OCR text content of the invoice to parse directly.",
+                },
+                "currency_hint": {
+                    "type": "string",
+                    "description": "3-letter ISO 4217 currency code hint (e.g. 'USD', 'EUR', 'GBP') if no symbol is found.",
+                    "default": "USD",
+                },
             },
         },
     },
     {
         "name": "pdf_extract",
-        "description": "Extract structured text per page, metadata, and estimated token counts from a PDF document (via URL or Base64).",
+        "description": "Extract text per page, outlines, document metadata, and accurate token count estimates from PDF documents. Use when ingesting multi-page reports, whitepapers, contracts, or legal documents into context. Read-only and idempotent.",
         "inputSchema": {
             "type": "object",
             "properties": {
-                "url": {"type": "string", "description": "Direct URL of the PDF"},
-                "file_base64": {"type": "string", "description": "Base64-encoded PDF binary"},
-                "max_pages": {"type": "integer", "description": "Maximum pages to extract (default 15)", "default": 15},
-                "start_page": {"type": "integer", "description": "Starting page number (default 1)", "default": 1},
+                "url": {
+                    "type": "string",
+                    "description": "Direct HTTPS URL to download the target PDF file.",
+                },
+                "file_base64": {
+                    "type": "string",
+                    "description": "Base64-encoded binary content of the PDF file.",
+                },
+                "max_pages": {
+                    "type": "integer",
+                    "description": "Maximum number of consecutive pages to extract (1 to 50, default 15).",
+                    "default": 15,
+                },
+                "start_page": {
+                    "type": "integer",
+                    "description": "1-based index of the first page to extract (default 1).",
+                    "default": 1,
+                },
             },
         },
     },
     {
         "name": "web_reader",
-        "description": "Fetch any public webpage URL and extract clean, structured Markdown optimized for LLM token efficiency.",
+        "description": "Fetch a public webpage URL and extract clean, structured Markdown optimized for LLM token efficiency, stripping headers, footers, ads, and navigation menus. Use when reading articles, blog posts, documentation, or public web pages. Read-only and idempotent.",
         "inputSchema": {
             "type": "object",
             "properties": {
-                "url": {"type": "string", "description": "The full URL to fetch"},
-                "max_length": {"type": "integer", "description": "Max markdown length (default 15000)", "default": 15000},
-                "include_links": {"type": "boolean", "description": "Whether to return page links catalog", "default": False},
+                "url": {
+                    "type": "string",
+                    "description": "The absolute HTTP or HTTPS URL of the webpage to fetch and convert to Markdown.",
+                },
+                "max_length": {
+                    "type": "integer",
+                    "description": "Maximum character limit for the returned Markdown content (1,000 to 50,000, default 15000).",
+                    "default": 15000,
+                },
+                "include_links": {
+                    "type": "boolean",
+                    "description": "Whether to extract and append a catalog of all hyperlinks found in the document.",
+                    "default": False,
+                },
             },
             "required": ["url"],
         },
     },
     {
         "name": "web_search",
-        "description": "Search the web using DuckDuckGo and return structured results.",
+        "description": "Search the live web using DuckDuckGo to retrieve real-time search results, titles, URLs, and text snippets. Use when you need current facts, external references, or breaking information not in your training data. Read-only and idempotent.",
         "inputSchema": {
             "type": "object",
             "properties": {
-                "query": {"type": "string", "description": "Search query"},
-                "max_results": {"type": "integer", "description": "Number of results (1-20)", "default": 5},
+                "query": {
+                    "type": "string",
+                    "description": "The search query string, keywords, or question (e.g. 'latest Python PEP releases').",
+                },
+                "max_results": {
+                    "type": "integer",
+                    "description": "Number of search results to return (integer between 1 and 20, default 5).",
+                    "default": 5,
+                },
             },
             "required": ["query"],
         },
     },
     {
         "name": "get_weather",
-        "description": "Get current weather and multi-day forecast for any location worldwide.",
+        "description": "Get current weather conditions (temperature, humidity, wind speed, weather code) and multi-day daily forecasts for any city or geographic location worldwide via Open-Meteo. Use when answering weather queries or trip planning. Read-only and idempotent.",
         "inputSchema": {
             "type": "object",
             "properties": {
-                "location": {"type": "string", "description": "City name (e.g. 'London', 'New York')"},
-                "forecast_days": {"type": "integer", "description": "Forecast days (1-7)", "default": 3},
+                "location": {
+                    "type": "string",
+                    "description": "City name (e.g. 'Tokyo', 'London', 'San Francisco') or comma-separated latitude,longitude.",
+                },
+                "forecast_days": {
+                    "type": "integer",
+                    "description": "Number of forecast days to return (integer between 1 and 7, default 3).",
+                    "default": 3,
+                },
             },
             "required": ["location"],
         },
     },
     {
         "name": "calculator",
-        "description": "Safely evaluate math expressions. Supports arithmetic, trig, log, sqrt, factorial.",
+        "description": "Safely evaluate mathematical and scientific expressions using an isolated AST evaluator without unsafe execution. Supports arithmetic (+, -, *, /, **), trigonometry (sin, cos, tan), logarithms, square roots, and factorials. Use whenever exact numeric precision is required to avoid arithmetic hallucinations. Pure, deterministic, and idempotent.",
         "inputSchema": {
             "type": "object",
             "properties": {
-                "expression": {"type": "string", "description": "Math expression (e.g. 'sqrt(144)', 'sin(pi/2)')"},
+                "expression": {
+                    "type": "string",
+                    "description": "The mathematical expression string to evaluate (e.g. 'sqrt(144) + 15 * log(100)').",
+                },
             },
             "required": ["expression"],
         },
     },
     {
         "name": "get_news",
-        "description": "Fetch the latest news headlines and summaries for any topic.",
+        "description": "Fetch current news headlines, summaries, sources, and publication timestamps for any topic or keyword via Google News RSS. Use when monitoring breaking news, market updates, or industry trends. Read-only and idempotent.",
         "inputSchema": {
             "type": "object",
             "properties": {
-                "topic": {"type": "string", "description": "News topic or keyword"},
-                "max_articles": {"type": "integer", "description": "Number of articles (1-20)", "default": 5},
+                "topic": {
+                    "type": "string",
+                    "description": "The topic, industry, person, or search keyword to retrieve news stories for (e.g. 'artificial intelligence').",
+                },
+                "max_articles": {
+                    "type": "integer",
+                    "description": "Maximum number of news articles to retrieve (integer between 1 and 20, default 5).",
+                    "default": 5,
+                },
             },
             "required": ["topic"],
         },
     },
     {
         "name": "summarize",
-        "description": "Summarize long text into the most important sentences.",
+        "description": "Perform extractive text summarization to identify and return the most informative, central sentences from long articles or documents based on term-frequency scoring. Use to compress long context into key points. Pure, deterministic, and idempotent.",
         "inputSchema": {
             "type": "object",
             "properties": {
-                "text": {"type": "string", "description": "Text to summarize (max 50,000 chars)"},
-                "num_sentences": {"type": "integer", "description": "Number of output sentences (1-10)", "default": 3},
+                "text": {
+                    "type": "string",
+                    "description": "Raw text content to summarize (maximum 50,000 characters).",
+                },
+                "num_sentences": {
+                    "type": "integer",
+                    "description": "Number of key summary sentences to extract (integer between 1 and 10, default 3).",
+                    "default": 3,
+                },
             },
             "required": ["text"],
         },
     },
     {
         "name": "get_ip_info",
-        "description": "Get geolocation and ISP metadata for an IP address.",
+        "description": "Retrieve geolocation, country, city, geographic coordinates, ISP, and timezone metadata for an IP address. Use to inspect IP locations, detect regional origins, or resolve server IP information. Read-only and idempotent.",
         "inputSchema": {
             "type": "object",
             "properties": {
-                "ip": {"type": "string", "description": "IP address (leave blank for your own IP)", "default": ""},
+                "ip": {
+                    "type": "string",
+                    "description": "IPv4 or IPv6 address to look up (e.g. '8.8.8.8'). Leave empty or blank to look up the caller's public IP address.",
+                    "default": "",
+                },
             },
         },
     },
